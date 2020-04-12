@@ -3,9 +3,7 @@ package com.example.criminalintent
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
@@ -18,32 +16,45 @@ import java.util.*
 private const val TAG = "CRIME LIST FRAGMENT"
 
 class CrimeListFragment : Fragment() {
-    interface Callbacks{
-        fun onCrimeSelected(crimeId:UUID)
+    interface Callbacks {
+        fun onCrimeSelected(crimeId: UUID)
     }
 
-    private var callbacks: Callbacks?=null
+    private var callbacks: Callbacks? = null
 
     private val crimeListViewModel: CrimeListViewModel by lazy {
         ViewModelProvider(this).get(CrimeListViewModel::class.java)
     }
-    private var adapter: CrimeAdapter? = CrimeAdapter(listOf(Crime(title="Crime 1")))
+    private var adapter: CrimeAdapter? = CrimeAdapter(listOf(Crime(title = "Crime 1")))
     private lateinit var crimeRecyclerView: RecyclerView
-//    override fun onCreate(savedInstanceState: Bundle?) {
-//        super.onCreate(savedInstanceState)
-//        Log.d(TAG, "Total Crimes : ${crimeListViewModel.crimes.size}")
-//    }
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setHasOptionsMenu(true)
+    }
 
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        callbacks= context as Callbacks?
+        callbacks = context as Callbacks?
     }
 
     override fun onDetach() {
         super.onDetach()
-        callbacks=null
+        callbacks = null
     }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.new_crime -> {
+                val crime = Crime()
+                crimeListViewModel.addCrime(crime)
+                callbacks?.onCrimeSelected(crimeId = crime.id)
+                true
+            }
+            else->return super.onOptionsItemSelected(item)
+        }
+    }
+
     companion object {
         fun newInstance(): CrimeListFragment {
             return CrimeListFragment()
@@ -61,7 +72,7 @@ class CrimeListFragment : Fragment() {
             Observer { crimes ->
                 crimes?.let {
                     Log.i(TAG, "Got crimes ${crimes.size}")
-                    //updateUI(crimes = crimes)
+                    updateUI(crimes = crimes)
                 }
             })
     }
@@ -96,9 +107,14 @@ class CrimeListFragment : Fragment() {
         }
 
         override fun onClick(v: View?) {
-        //    Toast.makeText(context, "${crime.title} pressed", Toast.LENGTH_SHORT).show()
+            //    Toast.makeText(context, "${crime.title} pressed", Toast.LENGTH_SHORT).show()
             callbacks?.onCrimeSelected(crimeId = crime.id)
         }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        super.onCreateOptionsMenu(menu, inflater)
+        inflater.inflate(R.menu.fragment_crime_list, menu)
     }
 
     private inner class CrimeAdapter(var crimes: List<Crime>) :
