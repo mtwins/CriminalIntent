@@ -1,5 +1,6 @@
 package com.example.criminalintent
 
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -12,20 +13,37 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import java.util.*
 
 private const val TAG = "CRIME LIST FRAGMENT"
 
 class CrimeListFragment : Fragment() {
+    interface Callbacks{
+        fun onCrimeSelected(crimeId:UUID)
+    }
+
+    private var callbacks: Callbacks?=null
+
     private val crimeListViewModel: CrimeListViewModel by lazy {
         ViewModelProvider(this).get(CrimeListViewModel::class.java)
     }
-    private var adapter: CrimeAdapter? = CrimeAdapter(emptyList())
+    private var adapter: CrimeAdapter? = CrimeAdapter(listOf(Crime(title="Crime 1")))
     private lateinit var crimeRecyclerView: RecyclerView
 //    override fun onCreate(savedInstanceState: Bundle?) {
 //        super.onCreate(savedInstanceState)
 //        Log.d(TAG, "Total Crimes : ${crimeListViewModel.crimes.size}")
 //    }
 
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        callbacks= context as Callbacks?
+    }
+
+    override fun onDetach() {
+        super.onDetach()
+        callbacks=null
+    }
     companion object {
         fun newInstance(): CrimeListFragment {
             return CrimeListFragment()
@@ -43,7 +61,7 @@ class CrimeListFragment : Fragment() {
             Observer { crimes ->
                 crimes?.let {
                     Log.i(TAG, "Got crimes ${crimes.size}")
-                    updateUI(crimes = crimes)
+                    //updateUI(crimes = crimes)
                 }
             })
     }
@@ -78,7 +96,8 @@ class CrimeListFragment : Fragment() {
         }
 
         override fun onClick(v: View?) {
-            Toast.makeText(context, "${crime.title} pressed", Toast.LENGTH_SHORT).show()
+        //    Toast.makeText(context, "${crime.title} pressed", Toast.LENGTH_SHORT).show()
+            callbacks?.onCrimeSelected(crimeId = crime.id)
         }
     }
 
